@@ -18,6 +18,11 @@ void HandleClayErrors(Clay_ErrorData errorData) {
 
 int main(void) {
     Clay_Dimensions ProgDimensions = {500,500};
+
+    Clay_Dimensions BatteryDisplayDimensions = {330,160};
+    int BatteryOutline = BatteryDisplayDimensions.width/11;
+    float BatteryCharge = 1;
+
     printf("Starting Program\n");
     uint64_t clayRequiredMemory = Clay_MinMemorySize();
     Clay_Arena clayMemory = (Clay_Arena){
@@ -35,11 +40,18 @@ int main(void) {
         .fontId = FONT_INFO
     };
     Clay_SetMeasureTextFunction(Raylib_MeasureText,0);
-    Image Icon_batteryOutline = LoadImage("assets/icons/batteryOutline.png");
-
+    Texture2D Icon_batteryOutline = LoadTexture("assets/icons/batteryOutline.png");
+    typedef enum {
+        NEG_INF,
+        ZERO,
+        POS_INF,
+        NOT_SPECIAL
+    } extrema;
     printf("Starting Loop\n");
     // printf("working directory: %s", GetWorkingDirectory());
 
+    // Clay_SetDebugModeEnabled(true);
+    Clay__debugViewWidth = 300;
     while (!WindowShouldClose()) {
         Clay_SetLayoutDimensions((Clay_Dimensions){GetScreenWidth(), GetScreenHeight()});
         Clay_BeginLayout();
@@ -49,12 +61,13 @@ int main(void) {
         int HeaderHeight = Height*0.155;
         int FooterHeight = Height*0.151;
         int FooterPadding = Height*0.08;
+
         CLAY(CLAY_ID("Display"),CLAY_RECTANGLE({.color = BgColor}),CLAY_LAYOUT({.childAlignment = { .x = CLAY_ALIGN_Y_CENTER, .y = CLAY_ALIGN_Y_CENTER }, .layoutDirection = CLAY_TOP_TO_BOTTOM, .sizing = {.width = CLAY_SIZING_GROW(), .height = CLAY_SIZING_GROW()}})
         ) {
             CLAY (
                 CLAY_ID("HeaderBar"),
                 CLAY_RECTANGLE({.color = {48,32,24,DebugOpacity}}),
-                CLAY_LAYOUT({.padding = {0,0,0,0}, .sizing = {.height = CLAY_SIZING_FIXED(HeaderHeight), .width = CLAY_SIZING_GROW()}})
+                CLAY_LAYOUT({.sizing = {.height = CLAY_SIZING_FIXED(HeaderHeight), .width = CLAY_SIZING_GROW()}})
                 ) {
                 CLAY (
                     CLAY_ID("TemperatureDisplay"),
@@ -70,15 +83,22 @@ int main(void) {
                 CLAY (
                     CLAY_ID("BatteryDisplayContext"),
                     CLAY_RECTANGLE({.color = {48,100,24,DebugOpacity}}),
-                    CLAY_LAYOUT({.childAlignment = { .x = CLAY_ALIGN_Y_CENTER, .y = CLAY_ALIGN_Y_CENTER }, .sizing = {.height = CLAY_SIZING_FIXED(HeaderHeight), .width = CLAY_SIZING_GROW()}})
+                    CLAY_LAYOUT({.childAlignment = { .x = CLAY_ALIGN_Y_CENTER, .y = CLAY_ALIGN_Y_CENTER }, .sizing = { .width = CLAY_SIZING_GROW(), .height = CLAY_SIZING_GROW() }})
                     ) {
-                    CLAY(CLAY_ID("BatteryDisplay"),CLAY_LAYOUT({})) {
-                        CLAY_TEXT(CLAY_STRING("100%"),CLAY_TEXT_CONFIG({.fontId = FONT_CLOCK, .fontSize =  42, .textColor = InfoColour}));
+                    CLAY(CLAY_ID("BatteryDisplay"),CLAY_LAYOUT({.childAlignment = { .x = CLAY_ALIGN_X_LEFT, .y = CLAY_ALIGN_Y_CENTER }, .sizing = { .width = CLAY_SIZING_FIXED(BatteryDisplayDimensions.width), .height = CLAY_SIZING_FIXED(BatteryDisplayDimensions.height) }})) {
+                        // CLAY_TEXT(CLAY_STRING("100%"),CLAY_TEXT_CONFIG({.fontId = FONT_CLOCK, .fontSize =  42, .textColor = InfoColour}));
                         CLAY(
                             CLAY_ID("BatteryOutlineImage"),
-                            CLAY_LAYOUT({ .sizing = { .width = CLAY_SIZING_FIXED(33), .height = CLAY_SIZING_FIXED(16) }}),
-                            CLAY_IMAGE({ .imageData = &Icon_batteryOutline, .sourceDimensions = {33, 16}, })
-                            ){};
+                            CLAY_LAYOUT({ .sizing = { .width = CLAY_SIZING_GROW(10), .height = CLAY_SIZING_GROW() }}),
+                            CLAY_IMAGE({ .imageData = &Icon_batteryOutline, .sourceDimensions = {33, 16}, }),
+                            CLAY_FLOATING({.zIndex = 1 } )
+                            ) {};
+                        CLAY(
+                            CLAY_ID("BatteryFill"),
+                            CLAY_RECTANGLE({.color = {20,244,200,120}}),
+                            CLAY_LAYOUT({.sizing = { .width = CLAY_SIZING_FIXED((BatteryCharge * (BatteryDisplayDimensions.width-(BatteryOutline*2))+BatteryOutline)),.height = CLAY_SIZING_FIXED(160*0.625) }}),
+                            CLAY_FLOATING({.zIndex = 0, .attachment = {.element = CLAY_ATTACH_POINT_LEFT_CENTER, .parent = CLAY_ATTACH_POINT_LEFT_CENTER}})
+                            ){}
                     }
                 }
             }
@@ -103,17 +123,17 @@ int main(void) {
                     CLAY_RECTANGLE({.color = {23,56,65,DebugOpacity}}),
                     CLAY_LAYOUT({.childAlignment = { .x = CLAY_ALIGN_Y_CENTER, .y = CLAY_ALIGN_Y_CENTER }, .sizing = {.width = CLAY_SIZING_GROW(),.height = CLAY_SIZING_GROW()}})
                     ) {
-                        CLAY_TEXT(CLAY_STRING("7/12/24 SUN"),CLAY_TEXT_CONFIG({
-                        .fontId = FONT_INFO,
-                        .fontSize =  80,
-                        .textColor = SecondaryColour
-                }));
+                    CLAY_TEXT(CLAY_STRING("7/12/24 SUN"),CLAY_TEXT_CONFIG({
+                    .fontId = FONT_INFO,
+                    .fontSize =  80,
+                    .textColor = SecondaryColour
+            }));
                 }
             }
             CLAY (
                 CLAY_ID("Footer"),
                 CLAY_RECTANGLE({.color = {47,24,24,DebugOpacity}}),
-                CLAY_LAYOUT({.padding = {0,0,0,0}, .sizing = {.height = CLAY_SIZING_FIXED(FooterHeight), .width = CLAY_SIZING_GROW()}})
+                CLAY_LAYOUT({.sizing = {.height = CLAY_SIZING_FIXED(FooterHeight), .width = CLAY_SIZING_GROW()}})
                 ){}
         }
         Clay_RenderCommandArray renderCommands = Clay_EndLayout();
