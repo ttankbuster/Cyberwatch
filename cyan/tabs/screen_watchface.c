@@ -153,7 +153,6 @@ void read_time_date(CyanData* data) {
     WatchfaceData* wf = &data->watchface;
     snprintf(wf->timeChars, sizeof(wf->timeChars), "%02d:%02d", wf->time.tm_hour, wf->time.tm_min);
 
-<<<<<<< HEAD
     const char* weekday = WEEKDAYS[wf->time.tm_wday];
     switch (cyan_settings_get()->dateFormat) {
     case DATE_MDY:
@@ -176,34 +175,6 @@ void read_time_date(CyanData* data) {
         );
         break;
     }
-=======
-    int day = wf->time.tm_mday;
-    int month = wf->time.tm_mon;
-    int year = wf->time.tm_year % 100;
-    int first, second, third;
-    switch (g_settings.dateFormat) {
-    case DATE_MDY:
-        first = month;
-        second = day;
-        third = year;
-        break;
-    case DATE_YMD:
-        first = year;
-        second = month;
-        third = day;
-        break;
-    case DATE_DMY:
-    default:
-        first = day;
-        second = month;
-        third = year;
-        break;
-    }
-    snprintf(
-        wf->dateChars, sizeof(wf->dateChars), "%02d/%02d/%02d %.3s", first, second, third,
-        WEEKDAYS[wf->time.tm_wday]
-    );
->>>>>>> 46ae89490506ea908522b11788f50b8e0f273993
 }
 
 Clay_RenderCommandArray

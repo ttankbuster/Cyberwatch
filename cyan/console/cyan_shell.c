@@ -391,13 +391,7 @@ static void do_settings_reset(void) {
 static int cmd_settings_reset(int argc, char** argv) {
     (void)argc;
     (void)argv;
-<<<<<<< HEAD
-    cyan_settings_set_defaults();
-    cyan_settings_apply(&data);
-    cyan_log(VERBOSE_SHELL, "settings reset to defaults (not yet saved)");
-=======
     cyan_console_request_confirmation("Reset all settings to defaults?", do_settings_reset);
->>>>>>> 46ae89490506ea908522b11788f50b8e0f273993
     return SHELL_OK;
 }
 

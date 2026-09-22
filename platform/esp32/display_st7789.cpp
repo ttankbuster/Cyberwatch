@@ -9,6 +9,8 @@ extern "C" {
 }
 #include <Arduino.h>
 #include <Arduino_GFX_Library.h>
+#include <stdio.h>
+#include <string.h>
 #include "esp32_hardware.h"
 //must be declared afterwards or gfxfont.h wont be loaded, which is a dependency
 #include "assets/fonts/GFX/FreeSans9pt7b.h"
@@ -115,15 +117,18 @@ extern "C" bool display_init(Display *display, CyanData *data) {
     data->tabs.tabIcons[1] = &iconFullTab;
 
 #ifdef DISPLAY_RESET_VIA_MCP
-    if (!mcpReady) {
-        Serial.println("display_init: MCP23017 not ready - call esp32_hardware_init() first");
-        return false;
+    if (mcpReady) {
+        mcp.digitalWrite(MCP_DISP_RST, LOW);
+        delay(20);
+        mcp.digitalWrite(MCP_DISP_RST, HIGH);
+        delay(120); // ST7789 needs settle time after reset before accepting commands
+        mcp.digitalWrite(MCP_DISP_BL, HIGH);
+    } else {
+        cyan_log(
+            VERBOSE_LOW,
+            "[Display] MCP23017 not ready - skipping reset/backlight (no-hardware mode)"
+        );
     }
-    mcp.digitalWrite(MCP_DISP_RST, LOW);
-    delay(20);
-    mcp.digitalWrite(MCP_DISP_RST, HIGH);
-    delay(120); // ST7789 needs settle time after reset before accepting commands
-    mcp.digitalWrite(MCP_DISP_BL, HIGH);
 #else
     #ifdef PIN_BL
         pinMode(PIN_BL, OUTPUT);
@@ -249,6 +254,76 @@ extern "C" void display_clear_clip(Display *display) {
 extern "C" void display_present(Display *display) {
     (void) display;
     gfx->flush();
+}
+
+extern "C" const char *display_screenshot_extension(void) { return "bmp"; }
+
+// Writes the canvas' backing framebuffer out as an uncompressed 24-bit BMP.
+// `path` is a full path already resolved for stdio (VFS-mounted, e.g. "/sd/...").
+extern "C" bool display_capture_screenshot(Display *display, const char *path) {
+    uint16_t *framebuffer = gfx->getFramebuffer();
+    if (!framebuffer) {
+        cyan_log(VERBOSE_LOW, "[Screenshot] No framebuffer available");
+        return false;
+    }
+
+    int width = display->width;
+    int height = display->height;
+    int rowSize = ((width * 3 + 3) / 4) * 4; // BMP rows are padded to 4 bytes
+    uint32_t pixelDataSize = (uint32_t) rowSize * (uint32_t) height;
+    uint32_t fileSize = 54 + pixelDataSize;
+
+    FILE *file = fopen(path, "wb");
+    if (!file) {
+        cyan_log(VERBOSE_LOW, "[Screenshot] Failed to open '%s' for writing", path);
+        return false;
+    }
+
+    uint8_t header[54] = {0};
+    header[0] = 'B';
+    header[1] = 'M';
+    uint32_t u32 = fileSize;
+    memcpy(&header[2], &u32, 4);
+    u32 = 54;
+    memcpy(&header[10], &u32, 4); // pixel data offset
+    u32 = 40;
+    memcpy(&header[14], &u32, 4); // BITMAPINFOHEADER size
+    int32_t i32 = width;
+    memcpy(&header[18], &i32, 4);
+    i32 = height;
+    memcpy(&header[22], &i32, 4);
+    uint16_t u16 = 1;
+    memcpy(&header[26], &u16, 2); // planes
+    u16 = 24;
+    memcpy(&header[28], &u16, 2); // bits per pixel
+    u32 = pixelDataSize;
+    memcpy(&header[34], &u32, 4);
+
+    bool ok = fwrite(header, 1, sizeof(header), file) == sizeof(header);
+
+    uint8_t *row = (uint8_t *) malloc(rowSize);
+    if (!row) {
+        cyan_log(VERBOSE_LOW, "[Screenshot] Out of memory for row buffer");
+        fclose(file);
+        return false;
+    }
+    memset(row, 0, rowSize);
+
+    // BMP rows are stored bottom-up; the framebuffer is top-down.
+    for (int y = height - 1; ok && y >= 0; y--) {
+        uint16_t *srcRow = &framebuffer[y * width];
+        for (int x = 0; x < width; x++) {
+            uint16_t pixel = srcRow[x];
+            row[x * 3 + 0] = (uint8_t) ((pixel & 0x1F) << 3);        // B
+            row[x * 3 + 1] = (uint8_t) (((pixel >> 5) & 0x3F) << 2); // G
+            row[x * 3 + 2] = (uint8_t) (((pixel >> 11) & 0x1F) << 3); // R
+        }
+        ok = fwrite(row, 1, rowSize, file) == (size_t) rowSize;
+    }
+
+    free(row);
+    fclose(file);
+    return ok;
 }
 
 extern "C" Clay_Dimensions display_measure_text(Clay_StringSlice text, Clay_TextElementConfig *config, void *userData) {

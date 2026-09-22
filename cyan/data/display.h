@@ -49,6 +49,8 @@ void display_set_clip(Display* display, Clay_BoundingBox box);
 void display_clear_clip(Display* display);
 void display_present(Display* display);
 bool display_capture_screenshot(Display* display, const char* path);
+// File extension (without the dot) that display_capture_screenshot writes on this platform.
+const char* display_screenshot_extension(void);
 void display_loading_log_listener(VerbosityLevel level, const char* message);
 void display_loading_screen(Display* display, float progress);
 

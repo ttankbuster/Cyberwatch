@@ -5,6 +5,7 @@
 #include <SD.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 extern "C" {
 #include "../../cyan/data/data.h"
@@ -156,6 +157,12 @@ void platform_store_resolved_path(const char* relativePath, char* outBuffer, siz
     } else {
         snprintf(outBuffer, bufferSize, "/sd/%s", relativePath);
     }
+}
+
+void platform_ensure_directory(const char* relativePath) {
+    char resolvedPath[256];
+    platform_store_resolved_path(relativePath, resolvedPath, sizeof(resolvedPath));
+    mkdir(resolvedPath, 0777);
 }
 
 FolderList scan_folder(char* path) {

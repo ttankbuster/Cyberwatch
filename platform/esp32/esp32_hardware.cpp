@@ -66,8 +66,12 @@ bool esp32_hardware_init(void) {
     connect_wifi();
     mcpReady = mcp.begin_I2C();
     if (!mcpReady) {
-        cyan_log(VERBOSE_LOW, "[Hardware/MCP23017] FAILED: device not found.");
-        return false;
+        cyan_log(
+            VERBOSE_LOW,
+            "[Hardware/MCP23017] FAILED: device not found - continuing without buttons/dial/"
+            "display-reset (no-hardware mode)."
+        );
+        return true;
     }
     cyan_log(VERBOSE_LOW, "[Hardware/MCP23017] OK.");
 

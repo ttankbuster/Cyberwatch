@@ -49,8 +49,6 @@ typedef enum {
     CYAN_SETTINGS_INTERPRET_INVALID_VALUE,
 } SettingInterpretError;
 
-
-
 typedef enum { DATE_DMY, DATE_MDY, DATE_YMD } DateFormat;
 
 typedef struct {
@@ -76,15 +74,8 @@ bool cyan_settings_save(void);
 bool cyan_settings_format_value(const char* key, char* out, size_t outSize);
 bool cyan_settings_set_from_string(const char* key, const char* value);
 void cyan_settings_print_all(void);
-<<<<<<< HEAD
-
-// Resolves which screen id should render at a given tab position, per the tab_order setting.
-// Falls back to identity (position == screen id) if tab_order isn't a valid permutation of
-// [0, tab_order length).
 int cyan_settings_resolve_tab_screen(int position);
 
-=======
->>>>>>> 46ae89490506ea908522b11788f50b8e0f273993
 int settings_tester(int argc, char** argv);
 extern CyanSettings g_settings;
 

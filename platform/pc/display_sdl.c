@@ -239,6 +239,8 @@ bool display_capture_screenshot(Display* display, const char* path) {
     return ok;
 }
 
+const char* display_screenshot_extension(void) { return "png"; }
+
 Clay_Dimensions
 display_measure_text(Clay_StringSlice text, Clay_TextElementConfig* config, void* userData) {
     int width, height;

@@ -81,7 +81,10 @@ int cyan_screenshot(char* path_override) {
         strftime(timestamp, sizeof(timestamp), "%Y-%m-%d@%H-%M", &data.watchface.time);
 
         char relativePath[600];
-        snprintf(relativePath, sizeof(relativePath), "screenshots/%s%s.png", label, timestamp);
+        snprintf(
+            relativePath, sizeof(relativePath), "screenshots/%s%s.%s", label, timestamp,
+            display_screenshot_extension()
+        );
         platform_ensure_directory("screenshots");
         platform_store_resolved_path(relativePath, resolvedPath, sizeof(resolvedPath));
         snprintf(logPath, sizeof(logPath), "%s", relativePath);
@@ -268,10 +271,7 @@ bool cyan_init(void) {
     data.tabs.tabIndex = 0;
     data.state = CYW_HOME;
     data.uptime = 0;
-<<<<<<< HEAD
     cyan_settings_apply(&data);
-=======
->>>>>>> 46ae89490506ea908522b11788f50b8e0f273993
     DisplaySize initialSize = display_get_size(&display);
     bool clayOk = clay_ui_init(
         MAXIMUM_ELEMENTS, display_measure_text, &display, initialSize.width, initialSize.height
@@ -315,14 +315,8 @@ void cyan_update(float dt, bool* running) {
         if (has_event_type(&data.eventQueue, EVENT_BUTTON1_DOWN)) {
             cyan_exit_app();
         }
-<<<<<<< HEAD
         clay_commands =
             clay_app_handler_app(&data, &app_handler, size.width, size.height, devMode, false);
-=======
-        clay_commands = clay_app_handler_app(
-            &data, &app_handler, size.width, size.height, g_settings.devMode, false
-        );
->>>>>>> 46ae89490506ea908522b11788f50b8e0f273993
         break;
 
     case CYW_HOME:
@@ -330,7 +324,6 @@ void cyan_update(float dt, bool* running) {
         if (has_event_type(&data.eventQueue, EVENT_BUTTON1_DOWN)) {
             cycle_tab(&data);
         }
-<<<<<<< HEAD
         switch (cyan_settings_resolve_tab_screen(data.tabs.tabIndex)) {
         case 0:
             clay_commands = clay_watchface(
@@ -340,18 +333,6 @@ void cyan_update(float dt, bool* running) {
         case 1:
             clay_commands =
                 clay_app_handler_catalogue(&data, &app_handler, size.width, size.height, devMode);
-=======
-        switch (g_settings.tabOrder[data.tabs.tabIndex]) {
-        case 0:
-            clay_commands = clay_watchface(
-                &data, size.width, size.height, g_settings.analogue, g_settings.devMode
-            );
-            break;
-        case 1:
-            clay_commands = clay_app_handler_catalogue(
-                &data, &app_handler, size.width, size.height, g_settings.devMode
-            );
->>>>>>> 46ae89490506ea908522b11788f50b8e0f273993
             if (has_event_type(&data.eventQueue, EVENT_SCROLL_UP)) {
                 app_handler_catalogue_move(&data.appCatalogue, &app_handler, -1);
             }
@@ -363,11 +344,7 @@ void cyan_update(float dt, bool* running) {
             }
             break;
         case 2:
-<<<<<<< HEAD
             clay_commands = clay_timer(&data, size.width, size.height, devMode);
-=======
-            clay_commands = clay_timer(&data, size.width, size.height, g_settings.devMode);
->>>>>>> 46ae89490506ea908522b11788f50b8e0f273993
             if (data.timer.active) {
                 data.timer.selectedElement = -1;
             } else {
@@ -386,11 +363,7 @@ void cyan_update(float dt, bool* running) {
             }
             break;
         case 3:
-<<<<<<< HEAD
             clay_commands = clay_stopwatch(&data, size.width, size.height, devMode);
-=======
-            clay_commands = clay_stopwatch(&data, size.width, size.height, g_settings.devMode);
->>>>>>> 46ae89490506ea908522b11788f50b8e0f273993
             if (has_event_type(&data.eventQueue, EVENT_BUTTON2_DOWN)) {
                 stopwatch_reset(&data);
             }
@@ -400,11 +373,7 @@ void cyan_update(float dt, bool* running) {
             break;
         default:
             clay_commands = clay_watchface(
-<<<<<<< HEAD
                 &data, size.width, size.height, data.watchface.analogueMode, devMode
-=======
-                &data, size.width, size.height, g_settings.analogue, g_settings.devMode
->>>>>>> 46ae89490506ea908522b11788f50b8e0f273993
             );
             break;
         }
