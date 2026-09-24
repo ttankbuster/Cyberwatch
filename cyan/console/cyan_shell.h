@@ -5,6 +5,7 @@
 #define CYAN_ESCAPE_CHAR '\\'
 #include "../app_handling/app_handler.h"
 #include "../settings/cyan_settings.h"
+#include "../network/network.h"
 #include "cyan_os.h"
 #include "log.h"
 #include <stdbool.h>

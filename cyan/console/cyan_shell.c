@@ -1,6 +1,5 @@
 // cyan_shell.c
 #include "cyan_shell.h"
-
 #include "cyan_console.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -426,6 +425,11 @@ static const ShellCommand SETTINGS_CMDS[] = {
     {NULL},
 };
 
+static const ShellCommand NETWORK_CMDS[] = {
+    {"test", "Test network connectivity", network_handler, NULL, "<server-name>"},
+    {NULL},
+};
+
 const ShellCommand CYAN_SHELL_ROOT_CMDS[] = {
     {"help", "Show all commands (this page)", cmd_help, NULL, NULL},
     {"version", "Show Cyan version", cmd_version, NULL, NULL},
@@ -433,6 +437,7 @@ const ShellCommand CYAN_SHELL_ROOT_CMDS[] = {
     {"app", "App management", NULL, APP_CMDS, NULL},
     {"screenshot", "Takes a screenshot of the current display", cmd_screenshot, NULL, NULL},
     {"settings", "Settings management", NULL, SETTINGS_CMDS, NULL},
+    {"network", "Network management", NULL, NETWORK_CMDS, NULL},
 
     {NULL}
 };
