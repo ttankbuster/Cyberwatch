@@ -1,0 +1,31 @@
+// cyan_os.h
+#ifndef CYAN_OS_H
+#define CYAN_OS_H
+
+#include "app_handling/app_handler.h"
+#include "data/data.h"
+#include "data/display.h"
+#include "settings/cyan_settings.h"
+#include <stdbool.h>
+
+#define CYAN_VERSION "Cyan V1B"
+
+extern CyanData data;
+extern Display display;
+
+bool cyan_init(void);
+void cyan_update(float dt, bool* running);
+void cyan_shutdown(void);
+void cyan_settings_apply(CyanData* data);
+
+bool cyan_launch_app_id(int id);
+bool cyan_launch_app_name(char* name);
+bool cyan_is_app_running();
+bool cyan_exit_app();
+AppHandler* cyan_get_app_handler();
+AppEntry* cyan_get_running_app();
+int cyan_get_uptime();
+void cyan_request_screenshot(const char* resolvedPath);
+int cyan_screenshot(char* path_override);
+
+#endif
